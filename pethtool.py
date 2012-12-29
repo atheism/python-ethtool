@@ -192,13 +192,27 @@ def show_offload(interface, args = None):
 	except IOError:
 		gso = "not supported"
 
+	try:
+		gro = ethtool.get_gro(interface) and "on" or "off"
+	except IOError:
+		gro = "not supported"
+
 	printtab("scatter-gather: %s" % sg)
 	printtab("tcp segmentation offload: %s" % tso)
 	printtab("udp fragmentation offload: %s" % ufo)
 	printtab("generic segmentation offload: %s" % gso)
+	printtab("generic recieve offload: %s" % gro)
 
 def set_offload(interface, args):
 	cmd, value = [a.lower() for a in args]
+
+	if cmd == "sg":
+		value = value == "on" and 1 or 0
+		try:
+			ethtool.set_sg(interface, value)
+		except IOError:
+			value = value == 1 and "on" or "off"
+			print "Unable to set sg %s" % value
 
 	if cmd == "tso":
 		value = value == "on" and 1 or 0
@@ -206,6 +220,29 @@ def set_offload(interface, args):
 			ethtool.set_tso(interface, value)
 		except:
 			pass
+
+	if cmd == "ufo":
+		value = value == "on" and 1 or 0
+		try:
+			ethtool.set_ufo(interface, value)
+		except IOError:
+			value = value == 1 and "on" or "off"
+			print "Unable to set ufo %s" % value
+
+	if cmd == "gso":
+		value = value == "on" and 1 or 0
+		try:
+			ethtool.set_gso(interface, value)
+		except:
+			pass
+
+	if cmd == "gro":
+		value = value == "on" and 1 or 0
+		try:
+			ethtool.set_gro(interface, value)
+		except:
+			pass
+
 
 ethtool_ringparam_msgs = (
 	( "Pre-set maximums", ),
@@ -290,6 +327,7 @@ def show_driver(interface, args = None):
 	try:
 		firmware_version = ethtool.get_firmware_version(interface)
 	except IOError:
+		bus = "not available"
 
 	try:
 		bus = ethtool.get_businfo(interface)
@@ -389,3 +427,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
