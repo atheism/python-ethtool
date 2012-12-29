@@ -283,11 +283,22 @@ def show_driver(interface, args = None):
 		driver = "not implemented"
 
 	try:
+		version = ethtool.get_version(interface)
+	except IOError:
+		bus = "not available"
+
+	try:
+		firmware_version = ethtool.get_firmware_version(interface)
+	except IOError:
+
+	try:
 		bus = ethtool.get_businfo(interface)
 	except IOError:
 		bus = "not available"
 
 	printtab("driver: %s" % driver)
+	printtab("version: %s" % version)
+	printtab("firmware-version: %s" % firmware_version)
 	printtab("bus-info: %s" % bus)
 
 def run_cmd(cmd, interface, args):

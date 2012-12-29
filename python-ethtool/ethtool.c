@@ -539,6 +539,92 @@ static PyObject *get_module(PyObject *self __unused, PyObject *args)
 	return PyString_FromString(((struct ethtool_drvinfo *)buf)->driver);
 }
 
+static PyObject *get_version(PyObject *self __unused, PyObject *args)
+{
+    struct ethtool_cmd ecmd;
+    struct ifreq ifr;
+    int fd, err;
+    char buf[1024];
+    char *devname;
+
+    if (!PyArg_ParseTuple(args, "s", &devname))
+        return NULL;
+
+    /* Setup our control structures. */
+    memset(&ecmd, 0, sizeof(ecmd));
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(&ifr.ifr_name[0], devname, IFNAMSIZ);
+    ifr.ifr_name[IFNAMSIZ - 1] = 0;
+    ifr.ifr_data = (caddr_t) &buf;
+    ecmd.cmd = ETHTOOL_GDRVINFO;
+    memcpy(&buf, &ecmd, sizeof(ecmd));
+
+    /* Open control socket. */
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        PyErr_SetString(PyExc_OSError, strerror(errno));
+        return NULL;
+    }
+
+    /* Get current settings. */
+    err = ioctl(fd, SIOCETHTOOL, &ifr);
+
+    if (err < 0) {  /* failed? */
+        int eno = errno;
+        close(fd);
+
+        sprintf(buf, "[Errno %d] %s", eno, strerror(eno));
+        PyErr_SetString(PyExc_IOError, buf);
+        return NULL;
+    }
+
+    close(fd);
+    return PyString_FromString(((struct ethtool_drvinfo *)buf)->version);
+}
+
+static PyObject *get_firmware_version(PyObject *self __unused, PyObject *args)
+{
+    struct ethtool_cmd ecmd;
+    struct ifreq ifr;
+    int fd, err;
+    char buf[1024];
+    char *devname;
+
+    if (!PyArg_ParseTuple(args, "s", &devname))
+        return NULL;
+
+    /* Setup our control structures. */
+    memset(&ecmd, 0, sizeof(ecmd));
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(&ifr.ifr_name[0], devname, IFNAMSIZ);
+    ifr.ifr_name[IFNAMSIZ - 1] = 0;
+    ifr.ifr_data = (caddr_t) &buf;
+    ecmd.cmd = ETHTOOL_GDRVINFO;
+    memcpy(&buf, &ecmd, sizeof(ecmd));
+
+    /* Open control socket. */
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        PyErr_SetString(PyExc_OSError, strerror(errno));
+        return NULL;
+    }
+
+    /* Get current settings. */
+    err = ioctl(fd, SIOCETHTOOL, &ifr);
+
+    if (err < 0) {  /* failed? */
+        int eno = errno;
+        close(fd);
+
+        sprintf(buf, "[Errno %d] %s", eno, strerror(eno));
+        PyErr_SetString(PyExc_IOError, buf);
+        return NULL;
+    }
+
+    close(fd);
+    return PyString_FromString(((struct ethtool_drvinfo *)buf)->fw_version);
+}
+
 static PyObject *get_businfo(PyObject *self __unused, PyObject *args)
 {
 	struct ethtool_cmd ecmd;
@@ -885,6 +971,16 @@ static struct PyMethodDef PyEthModuleMethods[] = {
 		.ml_meth = (PyCFunction)get_module,
 		.ml_flags = METH_VARARGS,
 	},
+    {
+        .ml_name = "get_version",
+        .ml_meth = (PyCFunction)get_version,
+        .ml_flags = METH_VARARGS,
+    },
+    {
+        .ml_name = "get_firmware_version",
+        .ml_meth = (PyCFunction)get_firmware_version,
+        .ml_flags = METH_VARARGS,
+    },
 	{
 		.ml_name = "get_businfo",
 		.ml_meth = (PyCFunction)get_businfo,
