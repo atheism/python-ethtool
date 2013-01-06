@@ -44,7 +44,11 @@ def usage():
 	-i|--driver             Show driver information
 	-k|--show-offload       Get protocol offload information
 	-K|--offload            Set protocol offload
-		[ tso on|off ]'''
+		[ sg on|off ]
+		[ tso on|off ]
+		[ ufo on|off ]
+		[ gso on|off ]
+		[ gro on|off ]'''
 
 tab = ""
 
