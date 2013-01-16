@@ -175,6 +175,14 @@ def set_coalesce(interface, args):
 
 	ethtool.set_coalesce(interface, coal)
 
+def get_link(interface, args = None):
+	try:
+		link_detected = ethtool.get_link(interface) and "yes" or "no"
+	except IOError:
+		link_detected = "not supported"
+
+	printtab("Link detected: %s" % link_detected)
+
 def show_offload(interface, args = None):
 	try:
 		sg = ethtool.get_sg(interface) and "on" or "off"
@@ -386,8 +394,20 @@ def main():
 		sys.exit(2)
 
 	if not opts:
+		if sys.argv[1]:
+			all_devices = ethtool.get_devices()
+			if args[0] not in all_devices:
+				usage()
+				sys.exit(1)
+			else:
+				interface = args[0]
+				cmd = get_link
+				run_cmd(get_link, interface, None)
+				sys.exit(0)
+		else:
 		usage()
 		sys.exit(0)
+	
 
 	for o, a in opts:
 		if o in ("-h", "--help"):

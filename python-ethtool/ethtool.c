@@ -828,6 +828,16 @@ static PyObject *set_gro(PyObject *self __unused, PyObject *args)
     return Py_None;
 }
 
+static PyObject *get_link(PyObject *self __unused, PyObject *args)
+{
+    int value = 0;
+
+    if (get_dev_int_value(ETHTOOL_GLINK, args, &value) < 0)
+        return NULL;
+
+    return Py_BuildValue("b", value);
+}
+
 struct struct_desc {
     char           *name;
     unsigned short offset;
@@ -1142,6 +1152,11 @@ static struct PyMethodDef PyEthModuleMethods[] = {
     {
         .ml_name = "set_gro",
         .ml_meth = (PyCFunction)set_gro,
+        .ml_flags = METH_VARARGS,
+    },
+    {
+        .ml_name = "get_link",
+        .ml_meth = (PyCFunction)get_link,
         .ml_flags = METH_VARARGS,
     },
     {   .ml_name = NULL, },
